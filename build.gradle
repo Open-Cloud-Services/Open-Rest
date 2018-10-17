@@ -1,0 +1,20 @@
+plugins {
+    id 'java'
+}
+
+group 'app.open.software'
+version '0.1'
+
+sourceCompatibility = 11
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+
+    compile 'com.google.code.gson:gson:2.8.5'
+    compile 'com.google.guava:guava:26.0-jre'
+    compile 'io.netty:netty-all:4.1.30.Final'
+}
