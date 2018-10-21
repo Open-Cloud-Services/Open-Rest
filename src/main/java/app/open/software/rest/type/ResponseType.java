@@ -1,19 +1,11 @@
 package app.open.software.rest.type;
 
-public enum ResponseType {
+import java.lang.annotation.*;
 
-	JSON("application/json; charset=utf-8"),
-	HTML("text/html; charset=utf-8"),
-	UNKNOWN("text/plain; charset=utf-8");
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface ResponseType {
 
-	private final String header;
-
-	ResponseType(final String header) {
-		this.header = header;
-	}
-
-	public final String getHeader() {
-		return this.header;
-	}
+	EncodingType value() default EncodingType.JSON;
 
 }

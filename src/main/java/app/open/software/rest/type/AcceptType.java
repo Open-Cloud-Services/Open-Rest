@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface AcceptType {
 
-    ResponseType value() default ResponseType.JSON;
+    EncodingType value() default EncodingType.JSON;
 
 }

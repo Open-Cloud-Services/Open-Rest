@@ -1,5 +1,6 @@
 package app.open.software.rest;
 
+import app.open.software.rest.route.Router;
 import app.open.software.rest.thread.ThreadBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -21,10 +22,13 @@ public class WebServer {
 
 	private final int port;
 
+	private final Router router;
+
 	private EventLoopGroup bossGroup, workerGroup;
 
-	public WebServer(final int port) {
+	public WebServer(final int port, final Router router) {
 		this.port = port;
+		this.router = router;
 
 		this.bossGroup = this.EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup();
 		this.workerGroup = this.EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup();
@@ -39,7 +43,10 @@ public class WebServer {
 					.childHandler(new ChannelInitializer<>() {
 
 						protected void initChannel(final Channel channel) {
-							channel.pipeline().addLast(new HttpServerCodec(), new HttpObjectAggregator(Integer.MAX_VALUE));
+							channel.pipeline().addLast(
+									new HttpServerCodec(),
+									new HttpObjectAggregator(Integer.MAX_VALUE),
+									new RestHandler(WebServer.this.router));
 						}
 
 					}).bind(this.port).syncUninterruptibly();

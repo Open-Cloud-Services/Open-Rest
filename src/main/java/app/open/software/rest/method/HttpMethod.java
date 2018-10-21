@@ -1,6 +1,7 @@
 package app.open.software.rest.method;
 
 public enum HttpMethod {
+	
     GET,
     HEAD,
     POST,
@@ -10,4 +11,5 @@ public enum HttpMethod {
     OPTIONS,
     TRACE,
     PATCH
+
 }
