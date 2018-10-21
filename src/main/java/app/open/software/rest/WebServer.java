@@ -36,13 +36,10 @@ public class WebServer {
 			new ServerBootstrap()
 					.group(this.bossGroup, this.workerGroup)
 					.channel(WebServer.this.EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
-					.childHandler(new ChannelInitializer<Channel>() {
+					.childHandler(new ChannelInitializer<>() {
 
 						protected void initChannel(final Channel channel) {
-							channel.pipeline().addLast(
-									new HttpServerCodec(),
-									new HttpObjectAggregator(Integer.MAX_VALUE)
-							);
+							channel.pipeline().addLast(new HttpServerCodec(), new HttpObjectAggregator(Integer.MAX_VALUE));
 						}
 
 					}).bind(this.port).syncUninterruptibly();
