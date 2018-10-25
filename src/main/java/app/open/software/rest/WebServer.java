@@ -1,5 +1,6 @@
 package app.open.software.rest;
 
+import app.open.software.rest.handler.RequestHandler;
 import app.open.software.rest.route.Router;
 import app.open.software.rest.thread.ThreadBuilder;
 import com.google.gson.Gson;
@@ -11,19 +12,40 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import java.net.URI;
 
+/**
+ * {@link WebServer} to provide the information with rest
+ *
+ * @author Tammo0987
+ * @since 1.0
+ * @version 1.0
+ */
 public class WebServer {
 
-	public final static Gson GSON = new GsonBuilder().create();
+	/**
+	 * {@link Gson} constant to serialize json text
+	 */
+	public static final Gson GSON = new GsonBuilder().create();
 
-	public final static Gson GSON_PRETTY = new GsonBuilder().setPrettyPrinting().create();
-
+	/**
+	 * {@link Epoll} constant to check if epoll is available
+	 */
 	private final boolean EPOLL = Epoll.isAvailable();
 
+	/**
+	 * Defines the port of the {@link WebServer}
+	 */
 	private final int port;
 
+	/**
+	 * {@link Router} ro route the {@link URI} to the right {@link RequestHandler}
+	 */
 	private final Router router;
 
+	/**
+	 * {@link EventLoopGroup}s for the netty server
+	 */
 	private EventLoopGroup bossGroup, workerGroup;
 
 	public WebServer(final int port, final Router router) {
@@ -34,6 +56,9 @@ public class WebServer {
 		this.workerGroup = this.EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup();
 	}
 
+	/**
+	 * Starts the {@link WebServer}
+	 */
 	public void start() {
 		new ThreadBuilder("Web Server", () -> {
 
@@ -54,6 +79,9 @@ public class WebServer {
 		}).setDaemon().start();
 	}
 
+	/**
+	 * Stops the {@link WebServer}
+	 */
 	public void stop() {
 		this.bossGroup.shutdownGracefully();
 		this.workerGroup.shutdownGracefully();
