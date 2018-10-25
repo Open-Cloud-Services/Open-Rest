@@ -101,7 +101,6 @@ public class Router {
 		return this.versionList.stream().filter(version -> route.startsWith(version.getVersionUri())).findFirst();
 	}
 
-	//TODO regex
 	private Optional<MethodMeta> getMethod(final String route, final HttpMethod method, final ApiVersion version) {
 		return version.getProvider().getMethodByRoute(route, method);
 	}
