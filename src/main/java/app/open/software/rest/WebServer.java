@@ -1,5 +1,7 @@
 package app.open.software.rest;
 
+import app.open.software.rest.auth.AuthListener;
+import app.open.software.rest.auth.AuthRestHandler;
 import app.open.software.rest.handler.RequestHandler;
 import app.open.software.rest.route.Router;
 import app.open.software.rest.thread.ThreadBuilder;
@@ -44,13 +46,19 @@ public class WebServer {
 	private final Router router;
 
 	/**
+	 * {@link AuthListener} to control access
+	 */
+	private final AuthListener authListener;
+
+	/**
 	 * {@link EventLoopGroup}s for the netty server
 	 */
 	private EventLoopGroup bossGroup, workerGroup;
 
-	public WebServer(final int port, final Router router) {
+	public WebServer(final int port, final Router router, final AuthListener authListener) {
 		this.port = port;
 		this.router = router;
+		this.authListener = authListener;
 
 		this.bossGroup = this.EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup();
 		this.workerGroup = this.EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup();
@@ -71,6 +79,7 @@ public class WebServer {
 							channel.pipeline().addLast(
 									new HttpServerCodec(),
 									new HttpObjectAggregator(Integer.MAX_VALUE),
+									new AuthRestHandler(WebServer.this.authListener),
 									new RestHandler(WebServer.this.router));
 						}
 
