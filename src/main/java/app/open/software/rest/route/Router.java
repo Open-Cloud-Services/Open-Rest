@@ -14,17 +14,41 @@ import com.google.common.base.Preconditions;
 import io.netty.handler.codec.http.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.util.*;
 
+/**
+ * {@link Router} to direct to the right {@link Method} from a {@link URI}
+ *
+ * @author Tammo0987
+ * @since 1.0
+ * @version 1.0
+ */
 public class Router {
 
+	/**
+	 * {@link List} of all registered {@link ApiVersion}s
+	 */
 	private final List<ApiVersion> versionList = new ArrayList<>();
 
+	/**
+	 * Register {@link ApiVersion}s
+	 *
+	 * @param versions {@link ApiVersion}s to register
+	 */
 	public final Router addVersion(final ApiVersion... versions) {
 		this.versionList.addAll(Arrays.asList(versions));
 		return this;
 	}
 
+	/**
+	 * Create the response for the {@link FullHttpRequest}
+	 *
+	 * @param request Received {@link FullHttpRequest}
+	 *
+	 * @throws InvocationTargetException An error occurred
+	 * @throws IllegalAccessException An error occurred
+	 */
 	public final FullHttpResponse createResponse(final FullHttpRequest request) throws InvocationTargetException, IllegalAccessException {
 		final var version = this.getVersion(request.uri());
 
@@ -96,15 +120,32 @@ public class Router {
 		return builder.getResponse();
 	}
 
+	/**
+	 * @return {@link Optional} of an {@link ApiVersion} filtered by a {@link Route}
+	 *
+	 * @param route {@link Route} to filter with
+	 */
 	private Optional<ApiVersion> getVersion(final String route) {
 		Preconditions.checkNotNull(route);
 		return this.versionList.stream().filter(version -> route.startsWith(version.getVersionUri())).findFirst();
 	}
 
+	/**
+	 * @return {@link Optional} of a {@link MethodMeta} filtered by a {@link Route} and a {@link HttpMethod}
+	 *
+	 * @param route {@link Route} to filter with
+	 * @param method {@link HttpMethod} to filter with
+	 * @param version Searching in this specific {@link ApiVersion}
+	 */
 	private Optional<MethodMeta> getMethod(final String route, final HttpMethod method, final ApiVersion version) {
 		return version.getProvider().getMethodByRoute(route, method);
 	}
 
+	/**
+	 * @return {@link List} of decoded {@link Parameter} from a {@link Route}
+	 *
+	 * @param route {@link Route} to decode {@link Parameter}
+	 */
 	private List<Parameter> decodeRoute(final String route) {
 		final var list = new ArrayList<Parameter>();
 		Arrays.stream(route.split("&"))
@@ -114,6 +155,12 @@ public class Router {
 		return list;
 	}
 
+	/**
+	 * @return {@link List} of {@link String} parameter for invoking the {@link Method}
+	 *
+	 * @param queryParameter {@link List} of decoded query {@link Parameter}
+	 * @param method {@link Method} to search for parameter
+	 */
 	private List<String> getParameter(final List<Parameter> queryParameter, final Method method) {
 		final List<String> list = new ArrayList<>();
 		Arrays.stream(method.getParameters())
