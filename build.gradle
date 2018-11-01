@@ -21,3 +21,12 @@ dependencies {
     compile 'com.google.guava:guava:26.0-jre'
     compile 'io.netty:netty-all:4.1.30.Final'
 }
+
+task sourcesJar(type: Jar, evaluationDependsOn: classes) {
+    classifier 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+}
