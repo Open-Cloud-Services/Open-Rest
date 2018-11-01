@@ -1,6 +1,8 @@
 package app.open.software.rest;
 
+import app.open.software.rest.auth.AuthListener;
 import app.open.software.rest.handler.RequestHandler;
+import app.open.software.rest.response.ResponseBuilder;
 import app.open.software.rest.route.Router;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -19,15 +21,28 @@ public class RestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 	 */
 	private final Router router;
 
-	RestHandler(final Router router) {
+	/**
+	 * {@link AuthListener} to check the permissions
+	 */
+	private final AuthListener listener;
+
+	RestHandler(final Router router, final AuthListener listener) {
 		this.router = router;
+		this.listener = listener;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	protected void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest request) throws Exception {
-		ctx.writeAndFlush(this.router.createResponse(request)).addListener(ChannelFutureListener.CLOSE);
+		if (this.listener.allowed(request)) {
+			ctx.writeAndFlush(this.router.createResponse(request)).addListener(ChannelFutureListener.CLOSE);
+		} else {
+			final FullHttpResponse response = new ResponseBuilder(request, HttpResponseStatus.FORBIDDEN).getResponse();
+			ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+		}
+
+		ctx.close();
 	}
 
 	/**

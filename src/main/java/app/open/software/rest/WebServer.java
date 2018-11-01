@@ -1,7 +1,6 @@
 package app.open.software.rest;
 
 import app.open.software.rest.auth.AuthListener;
-import app.open.software.rest.auth.AuthRestHandler;
 import app.open.software.rest.handler.RequestHandler;
 import app.open.software.rest.route.Router;
 import app.open.software.rest.thread.ThreadBuilder;
@@ -79,8 +78,7 @@ public class WebServer {
 							channel.pipeline().addLast(
 									new HttpServerCodec(),
 									new HttpObjectAggregator(Integer.MAX_VALUE),
-									new AuthRestHandler(WebServer.this.authListener),
-									new RestHandler(WebServer.this.router));
+									new RestHandler(WebServer.this.router, WebServer.this.authListener));
 						}
 
 					}).bind(this.port).syncUninterruptibly();
