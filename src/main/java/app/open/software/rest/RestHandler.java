@@ -30,4 +30,11 @@ public class RestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 		ctx.writeAndFlush(this.router.createResponse(request)).addListener(ChannelFutureListener.CLOSE);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) throws Exception {
+		cause.printStackTrace();
+		super.exceptionCaught(ctx, cause);
+	}
 }
