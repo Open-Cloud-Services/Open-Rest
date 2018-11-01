@@ -51,7 +51,7 @@ public class Router {
 	public final FullHttpResponse createResponse(final FullHttpRequest request) throws InvocationTargetException, IllegalAccessException {
 		final Optional<ApiVersion> version = this.getVersion(request.uri());
 
-		if (version.isEmpty()) {
+		if (!version.isPresent()) {
 			return new ResponseBuilder(request, HttpResponseStatus.NOT_FOUND).getResponse();
 		}
 
@@ -69,7 +69,7 @@ public class Router {
 		}
 
 		final Optional<MethodMeta> optionalMethod = this.getMethod(route, HttpMethod.valueOf(request.method().name()), version.get());
-		if (optionalMethod.isEmpty()) {
+		if (!optionalMethod.isPresent()) {
 			return new ResponseBuilder(request, HttpResponseStatus.NOT_FOUND).getResponse();
 		}
 
@@ -90,7 +90,6 @@ public class Router {
 
 		if (method.getParameterCount() > 0) {
 			if (parameterList.size() != method.getParameterCount()) {
-				//Arguments are missing
 				return new ResponseBuilder(request, HttpResponseStatus.BAD_REQUEST).getResponse();
 			}
 
