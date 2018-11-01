@@ -73,7 +73,7 @@ public class WebServer {
 			new ServerBootstrap()
 					.group(this.bossGroup, this.workerGroup)
 					.channel(WebServer.this.EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
-					.childHandler(new ChannelInitializer<>() {
+					.childHandler(new ChannelInitializer<Channel>() {
 
 						protected void initChannel(final Channel channel) {
 							channel.pipeline().addLast(

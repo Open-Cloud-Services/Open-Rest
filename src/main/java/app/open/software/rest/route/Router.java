@@ -7,8 +7,7 @@ import app.open.software.rest.method.HttpMethod;
 import app.open.software.rest.parameter.Parameter;
 import app.open.software.rest.parameter.PathParam;
 import app.open.software.rest.response.ResponseBuilder;
-import app.open.software.rest.type.AcceptType;
-import app.open.software.rest.type.ResponseType;
+import app.open.software.rest.type.*;
 import app.open.software.rest.version.ApiVersion;
 import com.google.common.base.Preconditions;
 import io.netty.handler.codec.http.*;
@@ -50,13 +49,13 @@ public class Router {
 	 * @throws IllegalAccessException An error occurred
 	 */
 	public final FullHttpResponse createResponse(final FullHttpRequest request) throws InvocationTargetException, IllegalAccessException {
-		final var version = this.getVersion(request.uri());
+		final Optional<ApiVersion> version = this.getVersion(request.uri());
 
 		if (version.isEmpty()) {
 			return new ResponseBuilder(request, HttpResponseStatus.NOT_FOUND).getResponse();
 		}
 
-		var route = request.uri().replace(version.get().getVersionUri(), "");
+		String route = request.uri().replace(version.get().getVersionUri(), "");
 
 		List<Parameter> parameterList = new ArrayList<>();
 		if (route.contains("?")) {
@@ -69,15 +68,15 @@ public class Router {
 			route = route.substring(0, route.length() - 1);
 		}
 
-		final var optionalMethod = this.getMethod(route, HttpMethod.valueOf(request.method().name()), version.get());
+		final Optional<MethodMeta> optionalMethod = this.getMethod(route, HttpMethod.valueOf(request.method().name()), version.get());
 		if (optionalMethod.isEmpty()) {
 			return new ResponseBuilder(request, HttpResponseStatus.NOT_FOUND).getResponse();
 		}
 
-		final var method = optionalMethod.get().getMethod();
+		final Method method = optionalMethod.get().getMethod();
 
 		if (method.isAnnotationPresent(AcceptType.class)) {
-			final var acceptType = method.getAnnotation(AcceptType.class).value();
+			final EncodingType acceptType = method.getAnnotation(AcceptType.class).value();
 			if (!request.headers().containsValue("Accept", acceptType.getHeader(), true)) {
 				return new ResponseBuilder(request, HttpResponseStatus.NOT_ACCEPTABLE).getResponse();
 			}
@@ -95,7 +94,7 @@ public class Router {
 				return new ResponseBuilder(request, HttpResponseStatus.BAD_REQUEST).getResponse();
 			}
 
-			final var invokeParams = this.getParameter(parameterList, method).toArray();
+			final Object[] invokeParams = this.getParameter(parameterList, method).toArray();
 			if (invokeParams.length != method.getParameterCount()) {
 				throw new IllegalArgumentException("Arguments are not right configured with the @PathParam Annotation");
 			}
@@ -112,11 +111,10 @@ public class Router {
 		}
 
 		if (method.isAnnotationPresent(ResponseHeader.class)) {
-			final var header = method.getAnnotation(ResponseHeader.class);
+			final ResponseHeader header = method.getAnnotation(ResponseHeader.class);
 			builder.setHeader(header.key(), header.value());
 		}
 
-		System.out.println(method.getName());
 		return builder.getResponse();
 	}
 
@@ -147,7 +145,7 @@ public class Router {
 	 * @param route {@link Route} to decode {@link Parameter}
 	 */
 	private List<Parameter> decodeRoute(final String route) {
-		final var list = new ArrayList<Parameter>();
+		final ArrayList<Parameter> list = new ArrayList<>();
 		Arrays.stream(route.split("&"))
 				.map(s -> s.split("="))
 				.filter(strings -> strings.length == 2)
@@ -166,7 +164,7 @@ public class Router {
 		Arrays.stream(method.getParameters())
 				.filter(methodParameter -> methodParameter.isAnnotationPresent(PathParam.class))
 				.forEach(methodParameter -> {
-					final var parameterName = methodParameter.getAnnotation(PathParam.class).value();
+					final String parameterName = methodParameter.getAnnotation(PathParam.class).value();
 					queryParameter.stream()
 							.filter(parameter -> parameter.getName().equals(parameterName))
 							.findFirst()
