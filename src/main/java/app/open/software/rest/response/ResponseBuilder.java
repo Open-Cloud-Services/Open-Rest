@@ -57,6 +57,16 @@ public class ResponseBuilder {
 	 *
 	 * @param content Content to write
 	 */
+	public final ResponseBuilder writeContent(final byte[] content) {
+		this.response.content().writeBytes(content);
+		return this;
+	}
+
+	/**
+	 * Write a string into the content of the {@link FullHttpResponse}
+	 *
+	 * @param content Content to write
+	 */
 	public final ResponseBuilder writeContent(final String content) {
 		this.response.content().writeBytes(content.getBytes());
 		return this;
@@ -70,7 +80,7 @@ public class ResponseBuilder {
 	 * @throws IOException An I/O error occurs
 	 */
 	public final ResponseBuilder writeContent(final File content) throws IOException {
-		return this.writeContent(Files.readString(content.toPath()));
+		return this.writeContent(Files.readAllBytes(content.toPath()));
 	}
 
 	/**
@@ -81,7 +91,7 @@ public class ResponseBuilder {
 	 * @throws IOException An I/O error occurs
 	 */
 	public final ResponseBuilder writeContent(final Path content) throws IOException {
-		return this.writeContent(Files.readString(content));
+		return this.writeContent(Files.readAllBytes(content));
 	}
 
 	/**
