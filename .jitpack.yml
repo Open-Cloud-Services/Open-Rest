@@ -1,2 +1,2 @@
 before_install:
-  - source install-jdk.sh
+- source install-jdk.sh
