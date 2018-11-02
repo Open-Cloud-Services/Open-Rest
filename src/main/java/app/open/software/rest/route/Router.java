@@ -4,8 +4,8 @@ import app.open.software.rest.handler.MethodMeta;
 import app.open.software.rest.header.ResponseHeader;
 import app.open.software.rest.header.ResponseHeaders;
 import app.open.software.rest.method.HttpMethod;
-import app.open.software.rest.parameter.Parameter;
-import app.open.software.rest.parameter.PathParam;
+import app.open.software.rest.parameter.*;
+import app.open.software.rest.request.Body;
 import app.open.software.rest.response.ResponseBuilder;
 import app.open.software.rest.type.*;
 import app.open.software.rest.version.ApiVersion;
@@ -14,6 +14,7 @@ import io.netty.handler.codec.http.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.*;
 
 /**
@@ -89,16 +90,40 @@ public class Router {
 		}
 
 		if (method.getParameterCount() > 0) {
-			if (parameterList.size() != method.getParameterCount()) {
-				return new ResponseBuilder(request, HttpResponseStatus.BAD_REQUEST).getResponse();
-			}
+			if (this.parameterContainsBodyAnnotation(method)) {
+				final String body = request.content().toString(Charset.forName("UTF-8"));
 
-			final Object[] invokeParams = this.getParameter(parameterList, method).toArray();
-			if (invokeParams.length != method.getParameterCount()) {
-				throw new IllegalArgumentException("Arguments are not right configured with the @PathParam Annotation");
-			}
+				final java.lang.reflect.Parameter param = Arrays.stream(method.getParameters()).filter(parameter -> parameter.isAnnotationPresent(Body.class)).findFirst().get();
+				final int bodyCount = Arrays.asList(method.getParameters()).indexOf(param);
 
-			builder.writeContent(method.invoke(optionalMethod.get().getRequestHandler(), invokeParams).toString());
+				if (parameterList.size() + 1 != method.getParameterCount()) {
+					return new ResponseBuilder(request, HttpResponseStatus.BAD_REQUEST).getResponse();
+				}
+
+				final Object[] invokeParams = this.getParameter(parameterList, method).toArray();
+
+				final ArrayList<Object> objectList = new ArrayList<>();
+				objectList.add(body);
+				objectList.addAll(Arrays.asList(invokeParams));
+
+				final Object[] result = objectList.toArray();
+				if (result.length != method.getParameterCount()) {
+					throw new IllegalArgumentException("Arguments are not right configured with the @PathParam Annotation");
+				}
+
+				builder.writeContent(method.invoke(optionalMethod.get().getRequestHandler(), result).toString());
+			} else {
+				if (parameterList.size() != method.getParameterCount()) {
+					return new ResponseBuilder(request, HttpResponseStatus.BAD_REQUEST).getResponse();
+				}
+
+				final Object[] invokeParams = this.getParameter(parameterList, method).toArray();
+				if (invokeParams.length != method.getParameterCount()) {
+					throw new IllegalArgumentException("Arguments are not right configured with the @PathParam Annotation");
+				}
+
+				builder.writeContent(method.invoke(optionalMethod.get().getRequestHandler(), invokeParams).toString());
+			}
 		} else {
 			builder.writeContent(method.invoke(optionalMethod.get().getRequestHandler()).toString());
 		}
@@ -171,6 +196,10 @@ public class Router {
 							.ifPresent(list::add);
 				});
 		return list;
+	}
+
+	private boolean parameterContainsBodyAnnotation(final Method method) {
+		return Arrays.stream(method.getParameters()).anyMatch(parameter -> parameter.isAnnotationPresent(Body.class));
 	}
 
 }
