@@ -6,6 +6,28 @@ Open-Rest is a Rest framework which works with an style of many annotations, to 
 
 You are welcome to use it in your own project, if a working version was released.
 
+## Maven
+
+You have to include this repository:
+```xml
+<repositories>
+    <repository>
+	<id>jitpack.io</id>
+	<url>https://jitpack.io</url>
+    </repository>
+</repositories>
+```
+And then you can use the latest version as dependency:
+```xml
+<dependency>
+    <groupId>com.github.Open-Cloud-Services</groupId>
+    <artifactId>Open-Rest</artifactId>
+    <version>Tag</version>
+</dependency>
+```
+
+## Example
+
 Here is a little Example, what you can already do:
 
 >**Main Class**
