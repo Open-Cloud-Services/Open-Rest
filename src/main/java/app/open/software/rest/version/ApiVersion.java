@@ -13,6 +13,11 @@ import app.open.software.rest.handler.RequestHandlerProvider;
 public class ApiVersion {
 
 	/**
+	 * Main version url
+	 */
+	private static String versionUrl = "/api/v%version%";
+
+	/**
 	 * Version id
 	 */
 	private final int version;
@@ -28,10 +33,19 @@ public class ApiVersion {
 	}
 
 	/**
+	 * Set a new format for the version url for example if you have api as subdomain
+	 *
+	 * @param versionUrl New version url
+	 */
+	public static void setVersionUrl(final String versionUrl) {
+		ApiVersion.versionUrl = versionUrl;
+	}
+
+	/**
 	 * @return The base url start from the version
 	 */
 	public final String getVersionUri() {
-		return "/api/v" + this.version;
+		return versionUrl.replace("%version%", String.valueOf(this.version));
 	}
 
 	public final RequestHandlerProvider getProvider() {
