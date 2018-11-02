@@ -3,7 +3,6 @@ package app.open.software.rest;
 import app.open.software.rest.auth.AuthListener;
 import app.open.software.rest.handler.RequestHandler;
 import app.open.software.rest.route.Router;
-import app.open.software.rest.thread.ThreadBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.netty.bootstrap.ServerBootstrap;
@@ -67,23 +66,19 @@ public class WebServer {
 	 * Starts the {@link WebServer}
 	 */
 	public void start() {
-		new ThreadBuilder("Web Server", () -> {
+		new ServerBootstrap()
+				.group(this.bossGroup, this.workerGroup)
+				.channel(WebServer.this.EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
+				.childHandler(new ChannelInitializer<Channel>() {
 
-			new ServerBootstrap()
-					.group(this.bossGroup, this.workerGroup)
-					.channel(WebServer.this.EPOLL ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
-					.childHandler(new ChannelInitializer<Channel>() {
+					protected void initChannel(final Channel channel) {
+						channel.pipeline().addLast(
+								new HttpServerCodec(),
+								new HttpObjectAggregator(Integer.MAX_VALUE),
+								new RestHandler(WebServer.this.router, WebServer.this.authListener));
+					}
 
-						protected void initChannel(final Channel channel) {
-							channel.pipeline().addLast(
-									new HttpServerCodec(),
-									new HttpObjectAggregator(Integer.MAX_VALUE),
-									new RestHandler(WebServer.this.router, WebServer.this.authListener));
-						}
-
-					}).bind(this.port).syncUninterruptibly();
-
-		}).setDaemon().start();
+				}).bind(this.port).syncUninterruptibly();
 	}
 
 	/**
