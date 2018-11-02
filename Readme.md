@@ -22,7 +22,7 @@ And then you can use the latest version as dependency:
 <dependency>
     <groupId>com.github.Open-Cloud-Services</groupId>
     <artifactId>Open-Rest</artifactId>
-    <version>v1.0</version>
+    <version>1.0</version>
 </dependency>
 ```
 
