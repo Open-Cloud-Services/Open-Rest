@@ -36,8 +36,11 @@ public class RestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 	 */
 	protected void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest request) throws Exception {
 		if (this.listener.allowed(request)) {
-			ctx.writeAndFlush(this.router.createResponse(request)).addListener(ChannelFutureListener.CLOSE);
+			final FullHttpResponse response = this.router.createResponse(request);
+			System.out.println("Route: " + request.uri() + " Method: " + request.method().name() + " Response Code: " + response.status().toString());
+			ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
 		} else {
+			System.out.println("Forbidden request!");
 			final FullHttpResponse response = new ResponseBuilder(request, HttpResponseStatus.FORBIDDEN).getResponse();
 			ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
 		}
